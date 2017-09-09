@@ -1,34 +1,74 @@
 package net.coderodde.util;
 
 import java.util.Arrays;
-import java.util.Random;
 
 public final class Demo {
 
-    private static final int ARRAY_LENGTH = 30;
+    private static final int ARRAY_LENGTH = 20_000_000;
     private static final int FROM_INDEX = 2;
     private static final int TO_INDEX = ARRAY_LENGTH - 3;
-    private static final int PERIOD_LENGTH = 10;
-    private static final int MINIMUM = -10;
-    private static final int MAXIMUM = 10;
+    private static final int PERIOD_LENGTH = 10_000;
+    private static final int MINIMUM = -3_000;
+    private static final int MAXIMUM = 3_000;
     
     public static void main(String[] args) {
-        long seed = System.currentTimeMillis();
-        Random random = new Random(seed);
+        warmup();
+        benchmark();
+    }
+    
+    private static void warmup() {
+        System.out.println("Warming up...");
+        int[] array = getWaveArray(ARRAY_LENGTH,
+                                   MINIMUM, 
+                                   MAXIMUM, 
+                                   PERIOD_LENGTH);
+        perform(array, false);
+        System.out.println("Warming up done!");
+    }
+    
+    private static void benchmark() {
+        int[] array = getWaveArray(ARRAY_LENGTH,
+                                   MINIMUM,
+                                   MAXIMUM, 
+                                   PERIOD_LENGTH);
+        perform(array, true);
+    }
+    
+    private static void perform(int[] array, boolean output) {
+        int[] array1 = array.clone();
+        int[] array2 = array.clone();
+        int[] array3 = array.clone();
         
-        int[] array1 = getWaveArray(ARRAY_LENGTH, 
-                                    MINIMUM, 
-                                    MAXIMUM,
-                                    PERIOD_LENGTH);
+        long start = System.currentTimeMillis();
+        Arrays.sort(array1, FROM_INDEX, TO_INDEX);
+        long end = System.currentTimeMillis();
         
-        int[] array2 = array1.clone();
+        if (output) {
+            System.out.println("Arrays.sort in " + (end - start) +
+                               " milliseconds.");
+        }
         
-        ParallelCurvesort.sort(array1);
-        Arrays.sort(array2);
-        System.out.println(Arrays.toString(array1));
-        System.out.println(Arrays.toString(array2));
-        System.out.println("Algorithms agree: " + Arrays.equals(array1, 
-                                                                array2));
+        start = System.currentTimeMillis();
+        Arrays.parallelSort(array2, FROM_INDEX, TO_INDEX);
+        end = System.currentTimeMillis();
+        
+        if (output) {
+            System.out.println("Arrays.parallelSort in " + (end - start) +
+                               " milliseconds.");
+        }
+        
+        start = System.currentTimeMillis();
+        ParallelCurvesort.sort(array3, FROM_INDEX, TO_INDEX);
+        end = System.currentTimeMillis();
+        
+        if (output) {
+            System.out.println("ParallelCurvesort.sort in " + (end - start) + 
+                               " milliseconds.");
+            
+            System.out.println("Algorithms agree: " + 
+                    (Arrays.equals(array1, array2) &&
+                     Arrays.equals(array2, array3)));
+        }
     }
     
     private static int[] getWaveArray(int length,

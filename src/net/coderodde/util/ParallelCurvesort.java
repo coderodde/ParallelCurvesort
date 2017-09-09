@@ -7,7 +7,7 @@ public final class ParallelCurvesort {
     /**
      * Each thread should not handle less than this number of integers.
      */
-    private static final int MINIMUM_INTS_PER_THREAD = 1;
+    private static final int MINIMUM_INTS_PER_THREAD = 10_000;
     
     /**
      * This static inner class implements a node in the frequency list.
